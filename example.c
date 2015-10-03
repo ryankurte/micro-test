@@ -1,10 +1,21 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "micro_test.h"
 
 static int fake_test(void* context);
 
 TEST_MODULE();
+
+int setup(void* context) {
+	//Per test setup here
+	return 0;
+}
+
+int teardown(void* context) {
+	//Per test teardown here
+	return 0;
+}
 
 int main(int argc, char** argv) 
 {
