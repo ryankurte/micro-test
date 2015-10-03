@@ -102,22 +102,22 @@ static int test_line_no;
 //Run a test (with setup and teardown)
 //Note that setup, test, and teardown functions must all have the same signature
 // ie. int function(context);
-#define RUN_TEST(name, function, context) \
+#define RUN_TEST(name, function, ...) \
     printf(" - %s\t\t", name); \
-    if(setup(context) < 0) { \
+    if(setup(__VA_ARGS__) < 0) { \
         printf(KRED "[SETUP FAILED]" KNRM "\r\n"); \
         PRINT_FAIL(); \
     } else { \
-        if(function(context) < 0) { \
+        if(function(__VA_ARGS__) < 0) { \
             printf(KRED "[FAILED]" KNRM "\r\n"); \
             test_fails ++; \
             PRINT_FAIL(); \
-            if(teardown(context) < 0) { \
+            if(teardown(__VA_ARGS__) < 0) { \
                 printf(KRED "[TEARDOWN FAILED]" KNRM "\r\n"); \
                 test_fails ++; \
             } \
         } else { \
-            if(teardown(context) < 0) { \
+            if(teardown(__VA_ARGS__) < 0) { \
                 printf(KRED "[TEARDOWN FAILED]" KNRM "\r\n"); \
                 test_fails ++; \
             } else { \
@@ -128,9 +128,9 @@ static int test_line_no;
     }
 
 //Run a test only (no setup or teardown)
-#define RUN_TEST_ONLY(name, function, context) \
+#define RUN_TEST_ONLY(name, function, ...) \
     printf(" - %s\t\t", name); \
-    if(function(context) < 0) { \
+    if(function(__VA_ARGS__) < 0) { \
         printf(KRED "[FAILED]" KNRM "\r\n"); \
         test_fails ++; \
         PRINT_FAIL(); \
