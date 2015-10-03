@@ -3,7 +3,8 @@
 
 #include "micro_test.h"
 
-static int fake_test(void* context);
+static int fake_test_pass(void* context);
+static int fake_test_fail(void* context);
 
 TEST_MODULE();
 
@@ -21,14 +22,25 @@ int main(int argc, char** argv)
 {
   START_TESTS();
 
-  TEST_GROUP("Fake");
+  TEST_GROUP("Fake Tests");
   
-  RUN_TEST("Fake Test", fake_test, NULL);
+  RUN_TEST("Fake Pass Test", fake_test_pass, NULL);
+
+  RUN_TEST("Fake Fail Test", fake_test_fail, NULL);
 
   END_TESTS();
 }
 
-static int fake_test(void* context)
+static int fake_test_pass(void* context)
+{
+  CHECK_EQUAL(0, 0);
+  
+  ASSERT(0);
+  
+  END_TEST();
+}
+
+static int fake_test_fail(void* context)
 {
   CHECK_EQUAL(0, 0);
   

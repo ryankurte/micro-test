@@ -2,3 +2,6 @@
 
 main:
 	cc example.c -o example.out
+
+run: main
+	./example.out
