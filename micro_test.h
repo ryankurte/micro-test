@@ -8,6 +8,8 @@
 #ifndef TEST_HELPERS_H
 #define TEST_HELPERS_H
 
+#include <inttypes.h>
+
 #ifndef UTEST_NO_COLOR
 
 //Colors enabled
@@ -34,6 +36,37 @@
 
 #endif
 
+#ifndef UTEST_NO_TIMING
+
+#include <time.h>
+
+#ifndef UTEST_CLOCKS_PER_SEC
+#error "microtest error: CLOCKS_PER_SEC must be defined to use timing"
+#endif
+
+#define SETUP_TIMING() uint32_t start, test_time = 0, total_time = 0;
+#define START_TIMING() start=clock();
+#define END_TIMING() test_time = (clock() - start) * 1000 / UTEST_CLOCKS_PER_SEC; total_time += test_time;
+//#define END_TIMING() test_time = (clock())
+
+#define PRINT_SUCCESS() printf(KGRN "[SUCCESS] (%" PRIu32 " ms)" KNRM "\r\n", test_time);
+#define PRINT_FAILURE() printf(KRED "[FAILURE] (%" PRIu32 " ms)" KNRM "\r\n", test_time);
+#define PRINT_END() printf("Ran %d tests. %d passed, %d failed in %" PRIu32 " ms\r\n", \
+                           test_fails + test_success, test_success, test_fails, total_time)
+
+#else
+
+#define SETUP_TIMING()
+#define START_TIMING()
+#define END_TIMING()
+
+#define PRINT_SUCCESS() printf(KGRN "[SUCCESS]" KNRM "\r\n")
+#define PRINT_FAILURE() printf(KRED "[FAILURE]" KNRM "\r\n")
+#define PRINT_END() printf("Ran %d tests. %d passed, %d failed\r\n", \
+                           test_fails + test_success, test_success, test_fails)
+
+#endif
+
 /***     Module Macros        ***/
 
 //Static variables for communicating outside of tests
@@ -47,8 +80,8 @@ static int test_line_no;
 
 //Start a test runner, called before TEST_GROUP and RUN_TEST
 #define START_TESTS() \
-    int test_fails = 0; \
-    int test_success = 0;
+    int test_fails = 0, test_success = 0, test_res = 0; \
+    SETUP_TIMING();
 
 //Starts a test group
 #define TEST_GROUP(name) \
@@ -57,7 +90,7 @@ static int test_line_no;
 //End a test runner, called after all RUN_TEST calls
 #define END_TESTS() \
     printf("----------------------------------------\r\n"); \
-    printf("Ran %d tests. %d passed, %d failed\r\n", test_fails + test_success, test_success, test_fails); \
+    PRINT_END(); \
     printf("\r\n"); \
     if(test_fails == 0) { \
         return 0; \
@@ -103,13 +136,16 @@ static int test_line_no;
 //Note that setup, test, and teardown functions must all have the same signature
 // ie. int function(context);
 #define RUN_TEST(name, function, ...) \
-    printf(" - %s\t\t", name); \
+    printf(" - %s", name); \
     if(setup(__VA_ARGS__) < 0) { \
         printf(KRED "[SETUP FAILED]" KNRM "\r\n"); \
         PRINT_FAIL(); \
     } else { \
-        if(function(__VA_ARGS__) < 0) { \
-            printf(KRED "[FAILED]" KNRM "\r\n"); \
+        START_TIMING(); \
+        test_res = function(__VA_ARGS__); \
+        END_TIMING(); \
+        if(test_res < 0) { \
+            PRINT_FAILURE() \
             test_fails ++; \
             PRINT_FAIL(); \
             if(teardown(__VA_ARGS__) < 0) { \
@@ -121,7 +157,7 @@ static int test_line_no;
                 printf(KRED "[TEARDOWN FAILED]" KNRM "\r\n"); \
                 test_fails ++; \
             } else { \
-                printf(KGRN "[SUCCESS]" KNRM "\r\n"); \
+                PRINT_SUCCESS(); \
                 test_success ++; \
             } \
         }; \
@@ -129,13 +165,16 @@ static int test_line_no;
 
 //Run a test only (no setup or teardown)
 #define RUN_TEST_ONLY(name, function, ...) \
-    printf(" - %s\t\t", name); \
-    if(function(__VA_ARGS__) < 0) { \
-        printf(KRED "[FAILED]" KNRM "\r\n"); \
+    printf(" - %s", name); \
+    START_TIMING(); \
+    test_res = function(__VA_ARGS__); \
+    END_TIMING(); \
+    if(test_res < 0) { \
+        PRINT_FAILURE(); \
         test_fails ++; \
         PRINT_FAIL(); \
     } else { \
-        printf(KGRN "[SUCCESS]" KNRM "\r\n"); \
+        PRINT_SUCCESS(); \
         test_success ++; \
     }
 
@@ -150,3 +189,4 @@ static int test_line_no;
     printf(KRED "Error: %d '%s' \r\n\tin file: %s:%d\r\n\r\n" KNRM, test_result, test_message, test_file, test_line_no);
 
 #endif
+
