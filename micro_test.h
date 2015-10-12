@@ -10,6 +10,7 @@
 
 #include <inttypes.h>
 
+//Enable or disable colours
 #ifndef UTEST_NO_COLOR
 
 //Colors enabled
@@ -36,18 +37,21 @@
 
 #endif
 
+//Enable or disable test timing
 #ifndef UTEST_NO_TIMING
+
+//Timing enabled
 
 #include <time.h>
 
+//Optional clocks per second to bypass default for embedded platforms
 #ifndef UTEST_CLOCKS_PER_SEC
-#error "microtest error: CLOCKS_PER_SEC must be defined to use timing"
+#define UTEST_CLOCKS_PER_SEC CLOCKS_PER_SEC
 #endif
 
 #define SETUP_TIMING() uint32_t start, test_time = 0, total_time = 0;
 #define START_TIMING() start=clock();
 #define END_TIMING() test_time = (clock() - start) * 1000 / UTEST_CLOCKS_PER_SEC; total_time += test_time;
-//#define END_TIMING() test_time = (clock())
 
 #define PRINT_SUCCESS() printf(KGRN "[SUCCESS] (%" PRIu32 " ms)" KNRM "\r\n", test_time);
 #define PRINT_FAILURE() printf(KRED "[FAILURE] (%" PRIu32 " ms)" KNRM "\r\n", test_time);
@@ -55,6 +59,8 @@
                            test_fails + test_success, test_success, test_fails, total_time)
 
 #else
+
+//Timing Disabled
 
 #define SETUP_TIMING()
 #define START_TIMING()
